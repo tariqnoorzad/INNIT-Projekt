@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { gs } from '../../../styles/globalstyle';
 
 // Midlertidige kategorier – kan senere hentes fra en JSON eller backend
-const CATEGORIES = ['Koncert', 'Sport', 'Festival', 'Teater', 'Andet'];
+const CATEGORIES = ['Musik', 'Sport', 'Teater', 'Comedy', 'Festival', 'Andet'];
 
 export default function SellTicket({ navigation }) {
   const [form, setForm] = useState({
@@ -16,6 +16,7 @@ export default function SellTicket({ navigation }) {
     qty: '',
     city: '',
     note: '',
+    dateTime: '', // 👈 nyt felt til dato
   });
 
   const handleChange = (k, v) => setForm((s) => ({ ...s, [k]: v }));
@@ -25,16 +26,29 @@ export default function SellTicket({ navigation }) {
     form.partner.trim() &&
     form.category.trim() &&
     Number(form.price) > 0 &&
-    Number(form.qty) > 0;
+    Number(form.qty) > 0 &&
+    form.dateTime.trim(); // 👈 kræver også dato
 
   const onSubmit = () => {
     if (!canSubmit) {
-      Alert.alert('Manglende felter', 'Udfyld venligst titel, partner, kategori, pris og antal.');
+      Alert.alert(
+        'Manglende felter',
+        'Udfyld venligst titel, partner, kategori, pris, antal og dato.'
+      );
       return;
     }
     // Her kunne du kalde et globalt context eller backend API
     Alert.alert('Opslået ✅', 'Din billet er sat til salg.');
-    setForm({ title: '', partner: '', category: '', price: '', qty: '', city: '', note: '' });
+    setForm({
+      title: '',
+      partner: '',
+      category: '',
+      price: '',
+      qty: '',
+      city: '',
+      note: '',
+      dateTime: '',
+    });
     navigation.goBack(); // Gå tilbage til forsiden
   };
 
@@ -77,7 +91,9 @@ export default function SellTicket({ navigation }) {
                   { backgroundColor: form.category === c ? '#6EE7B7' : '#191B22' },
                 ]}
               >
-                <Text style={{ color: form.category === c ? '#0E0F13' : 'white' }}>{c}</Text>
+                <Text style={{ color: form.category === c ? '#0E0F13' : 'white' }}>
+                  {c}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -103,6 +119,15 @@ export default function SellTicket({ navigation }) {
           />
         </View>
 
+        {/* Dato */}
+        <TextInput
+          placeholder="Dato (fx 2025-10-15 20:00)"
+          placeholderTextColor="#666"
+          value={form.dateTime}
+          onChangeText={(v) => handleChange('dateTime', v)}
+          style={[gs.card, { marginBottom: 12, color: 'white' }]}
+        />
+
         {/* By */}
         <TextInput
           placeholder="By (valgfri)"
@@ -119,7 +144,10 @@ export default function SellTicket({ navigation }) {
           value={form.note}
           onChangeText={(v) => handleChange('note', v)}
           multiline
-          style={[gs.card, { minHeight: 100, textAlignVertical: 'top', marginBottom: 16, color: 'white' }]}
+          style={[
+            gs.card,
+            { minHeight: 100, textAlignVertical: 'top', marginBottom: 16, color: 'white' },
+          ]}
         />
 
         {/* CTA */}
