@@ -54,10 +54,12 @@ export default function SearchCategoriesScreen({ navigation }) {
                     ? navigation.navigate('Search/Results')
                     : item.id === 'sell'
                       ? navigation.navigate('SellTicket')
-                      : alert('Kommer snart')
-
+                      : item.id === 'partners'
+                        ? navigation.navigate('PartnersList')
+                        : alert('Kommer snart')
                 }
               />
+
             ))}
           </View>
         </View>
