@@ -1,0 +1,136 @@
+// src/features/sell/screens/SellTicket.js
+import React, { useState } from 'react';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { gs } from '../../../styles/globalstyle';
+
+// Midlertidige kategorier – kan senere hentes fra en JSON eller backend
+const CATEGORIES = ['Koncert', 'Sport', 'Festival', 'Teater', 'Andet'];
+
+export default function SellTicket({ navigation }) {
+  const [form, setForm] = useState({
+    title: '',
+    partner: '',
+    category: '',
+    price: '',
+    qty: '',
+    city: '',
+    note: '',
+  });
+
+  const handleChange = (k, v) => setForm((s) => ({ ...s, [k]: v }));
+
+  const canSubmit =
+    form.title.trim() &&
+    form.partner.trim() &&
+    form.category.trim() &&
+    Number(form.price) > 0 &&
+    Number(form.qty) > 0;
+
+  const onSubmit = () => {
+    if (!canSubmit) {
+      Alert.alert('Manglende felter', 'Udfyld venligst titel, partner, kategori, pris og antal.');
+      return;
+    }
+    // Her kunne du kalde et globalt context eller backend API
+    Alert.alert('Opslået ✅', 'Din billet er sat til salg.');
+    setForm({ title: '', partner: '', category: '', price: '', qty: '', city: '', note: '' });
+    navigation.goBack(); // Gå tilbage til forsiden
+  };
+
+  return (
+    <SafeAreaView style={gs.screen} edges={['top', 'bottom']}>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+        <Text style={gs.h1}>Sælg din billet</Text>
+        <Text style={[gs.muted, { marginBottom: 16 }]}>
+          Udfyld oplysningerne herunder for at sætte din billet til salg.
+        </Text>
+
+        {/* Titel */}
+        <TextInput
+          placeholder="Event / titel"
+          placeholderTextColor="#666"
+          value={form.title}
+          onChangeText={(v) => handleChange('title', v)}
+          style={[gs.card, { marginBottom: 12, color: 'white' }]}
+        />
+
+        {/* Partner */}
+        <TextInput
+          placeholder="Partner (fx Tivoli, Royal Arena)"
+          placeholderTextColor="#666"
+          value={form.partner}
+          onChangeText={(v) => handleChange('partner', v)}
+          style={[gs.card, { marginBottom: 12, color: 'white' }]}
+        />
+
+        {/* Kategori */}
+        <View style={{ marginBottom: 16 }}>
+          <Text style={[gs.subtitle, { marginBottom: 8 }]}>Kategori</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {CATEGORIES.map((c) => (
+              <TouchableOpacity
+                key={c}
+                onPress={() => handleChange('category', c)}
+                style={[
+                  gs.pill,
+                  { backgroundColor: form.category === c ? '#6EE7B7' : '#191B22' },
+                ]}
+              >
+                <Text style={{ color: form.category === c ? '#0E0F13' : 'white' }}>{c}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Pris + antal */}
+        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 12 }}>
+          <TextInput
+            placeholder="Pris (DKK)"
+            placeholderTextColor="#666"
+            value={form.price}
+            onChangeText={(v) => handleChange('price', v.replace(/[^0-9]/g, ''))}
+            keyboardType="numeric"
+            style={[gs.card, { flex: 1, color: 'white' }]}
+          />
+          <TextInput
+            placeholder="Antal"
+            placeholderTextColor="#666"
+            value={form.qty}
+            onChangeText={(v) => handleChange('qty', v.replace(/[^0-9]/g, ''))}
+            keyboardType="numeric"
+            style={[gs.card, { flex: 1, color: 'white' }]}
+          />
+        </View>
+
+        {/* By */}
+        <TextInput
+          placeholder="By (valgfri)"
+          placeholderTextColor="#666"
+          value={form.city}
+          onChangeText={(v) => handleChange('city', v)}
+          style={[gs.card, { marginBottom: 12, color: 'white' }]}
+        />
+
+        {/* Note */}
+        <TextInput
+          placeholder="Beskrivelse (valgfri)"
+          placeholderTextColor="#666"
+          value={form.note}
+          onChangeText={(v) => handleChange('note', v)}
+          multiline
+          style={[gs.card, { minHeight: 100, textAlignVertical: 'top', marginBottom: 16, color: 'white' }]}
+        />
+
+        {/* CTA */}
+        <TouchableOpacity
+          style={[gs.buttonPrimary, !canSubmit && { opacity: 0.5 }]}
+          onPress={onSubmit}
+          disabled={!canSubmit}
+        >
+          <Text style={gs.buttonTextDark}>Sæt til salg</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}

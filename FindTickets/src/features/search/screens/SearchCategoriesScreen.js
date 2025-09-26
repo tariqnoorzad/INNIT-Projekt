@@ -25,9 +25,9 @@ export default function SearchCategoriesScreen({ navigation }) {
   const partners = ['Royal Arena', 'Escape Room', 'Paint Ball', 'Brøndby IF', 'Tivoli']; // mock badges
 
   return (
-    <SafeAreaView style={gs.screen} edges={['top','bottom']}>
+    <SafeAreaView style={gs.screen} edges={['top', 'bottom']}>
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
-        {/* HERO */} 
+        {/* HERO */}
         <View>
           <Text style={gs.h1}>Event Now</Text>
           <Text style={[gs.muted, { marginTop: 6 }]}>
@@ -52,7 +52,10 @@ export default function SearchCategoriesScreen({ navigation }) {
                 onPress={() =>
                   item.id === 'search'
                     ? navigation.navigate('Search/Results')
-                    : alert('Kommer snart') // Denne del af appen er ikke implementeret endnu og derfor vil vi bare vise en alert
+                    : item.id === 'sell'
+                      ? navigation.navigate('SellTicket')
+                      : alert('Kommer snart')
+
                 }
               />
             ))}
