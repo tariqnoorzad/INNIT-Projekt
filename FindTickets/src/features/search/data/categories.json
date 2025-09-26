@@ -1,0 +1,16 @@
+{
+  "entry": [
+    { "id": "search",   "title": "Find billetter",     "icon": "search" },
+    { "id": "sell",     "title": "Sælg billet",        "icon": "ticket-plus" },
+    { "id": "partners", "title": "Samarbejdspartnere", "icon": "handshake" }
+  ],
+  "filters": [
+    { "id": "music",    "title": "Musik",    "icon": "music" },
+    { "id": "sport",    "title": "Sport",    "icon": "football" },
+    { "id": "theatre",  "title": "Teater",   "icon": "drama-masks" },
+    { "id": "comedy",   "title": "Comedy",   "icon": "smile" },
+    { "id": "festival", "title": "Festival", "icon": "party"},
+    { "id": "other",    "title": "Andet",    "icon": "dots-horizontal" }
+
+  ]
+}

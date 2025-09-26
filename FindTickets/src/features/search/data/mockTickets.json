@@ -1,0 +1,68 @@
+[
+  {
+    "id": "t1",
+    "title": "Drake – Royal Arena",
+    "city": "København",
+    "dateTime": "2025-10-20T20:00:00",
+    "price": 650,
+    "isVerified": true,
+    "category": "music"
+  },
+  {
+    "id": "t2",
+    "title": "FC København vs Brøndby",
+    "city": "København",
+    "dateTime": "2025-10-20T18:00:00",
+    "price": 250,
+    "isVerified": false,
+    "category": "sport"
+  },
+  {
+    "id": "t3",
+    "title": "The Weeknd – Parken Stadium",
+    "city": "København",
+    "dateTime": "2025-11-12T20:30:00",
+    "price": 650,
+    "isVerified": true,
+    "category": "music"
+  },
+  {
+    "id": "t4",
+    "title": "Adele – Royal Arena",
+    "city": "København",
+    "dateTime": "2025-12-05T19:00:00",
+    "price": 750,
+    "isVerified": false,
+    "category": "music"
+  },
+ 
+  {
+    "id": "t5",
+    "title": "Stand-up: Simon Talbot – Comedy Night",
+    "city": "Odense",
+    "dateTime": "2025-10-28T21:00:00",
+    "price": 200,
+    "isVerified": false,
+    "category": "comedy"
+  },
+
+  {
+    "id": "t6",
+    "title": "Escape Room",
+    "city": "Rødovre",
+    "dateTime": "2025-10-10T19:30:00",
+    "price": 500,
+    "isVerified": true,
+    "category": "other"
+  }, 
+
+  {
+    "id": "t7",
+    "title": "PaintBall",
+    "city": "Brøndby",
+    "dateTime": "2025-10-10T19:30:00",
+    "price": 500,
+    "isVerified": true,
+    "category": "other"
+  }
+]
