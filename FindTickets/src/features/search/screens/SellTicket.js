@@ -58,7 +58,7 @@ export default function SellTicket({ navigation }) {
         createdAt: new Date().toISOString(),
       });
 
-      Alert.alert('Opslået ✅', 'Din billet er sat til salg.');
+      Alert.alert('Opslået', 'Din billet er sat til salg.');
 
       // Nulstil formular
       setForm({
@@ -75,7 +75,7 @@ export default function SellTicket({ navigation }) {
       navigation.goBack();
     } catch (error) {
       console.error('Fejl ved gemning i Firebase RTDB:', error);
-      Alert.alert('Fejl ❌', 'Noget gik galt. Prøv igen.');
+      Alert.alert('Fejl ', 'Noget gik galt. Prøv igen.');
     }
   };
 
