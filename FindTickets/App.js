@@ -7,7 +7,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons'; // Hvis du IKKE bruger Expo, brug: import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import SearchStack from './src/navigation/SearchStack';
-import SearchCategoriesScreen from './src/features/search/screens/SearchCategoriesScreen'; // tjek sti
+import SearchResultsScreen from './src/features/search/screens/SearchResultsScreen'; // tjek sti
 
 const Tab = createBottomTabNavigator();
 
@@ -25,7 +25,6 @@ export default function App() {
               tabBarStyle: {
                 backgroundColor: '#0E0F13', // Spotify mørk baggrund
                 borderTopWidth: 0,
-                
               },
               tabBarIcon: ({ color, size }) => {
                 let iconName;
@@ -46,7 +45,7 @@ export default function App() {
             {/* Anden tab: direkte søge screen */}
             <Tab.Screen
               name="Search"
-              component={SearchCategoriesScreen}
+              component={SearchResultsScreen}
             />
           </Tab.Navigator>
         </NavigationContainer>
