@@ -31,53 +31,55 @@ export default function SellTicket({ navigation }) {
     Number(form.qty) > 0 &&
     form.dateTime.trim(); // 👈 kræver også dato
 
-  const onSubmit = async () => {
-    if (!canSubmit) {
-      Alert.alert(
-        'Manglende felter',
-        'Udfyld venligst titel, partner, kategori, pris, antal og dato.'
-      );
-      return;
-    }
-
-    try {
-      // Reference til "tickets" i RTDB
-      const ticketsRef = ref(rtdb, 'tickets');
-
-      // Generer unik nøgle og gem billet
-      const newTicketRef = push(ticketsRef);
-      await set(newTicketRef, {
-        title: form.title,
-        partner: form.partner,
-        category: form.category,
-        price: Number(form.price),
-        qty: Number(form.qty),
-        city: form.city,
-        note: form.note,
-        dateTime: form.dateTime,
-        createdAt: new Date().toISOString(),
-      });
-
-      Alert.alert('Opslået', 'Din billet er sat til salg.');
-
-      // Nulstil formular
-      setForm({
-        title: '',
-        partner: '',
-        category: '',
-        price: '',
-        qty: '',
-        city: '',
-        note: '',
-        dateTime: '',
-      });
-
-      navigation.goBack();
-    } catch (error) {
-      console.error('Fejl ved gemning i Firebase RTDB:', error);
-      Alert.alert('Fejl ', 'Noget gik galt. Prøv igen.');
-    }
-  };
+    const onSubmit = async () => {
+      if (!canSubmit) {
+        Alert.alert(
+          'Manglende felter',
+          'Udfyld venligst titel, partner, kategori, pris, antal og dato.'
+        );
+        return;
+      }
+    
+      try {
+        const ticketsRef = ref(rtdb, 'tickets');
+    
+        // Generer unik nøgle til billetten
+        const newTicketRef = push(ticketsRef);
+        const newId = newTicketRef.key; // 👈 henter id
+    
+        await set(newTicketRef, {
+          id: newId, // 👈 gem id med i objektet
+          title: form.title,
+          partner: form.partner,
+          category: form.category,
+          price: Number(form.price),
+          qty: Number(form.qty),
+          city: form.city,
+          note: form.note,
+          dateTime: form.dateTime,
+          createdAt: new Date().toISOString(),
+        });
+    
+        Alert.alert('Opslået', 'Din billet er sat til salg.');
+    
+        // Nulstil formular
+        setForm({
+          title: '',
+          partner: '',
+          category: '',
+          price: '',
+          qty: '',
+          city: '',
+          note: '',
+          dateTime: '',
+        });
+    
+        navigation.goBack();
+      } catch (error) {
+        console.error('Fejl ved gemning i Firebase RTDB:', error);
+        Alert.alert('Fejl ', 'Noget gik galt. Prøv igen.');
+      }
+    };
 
   return (
     <SafeAreaView style={gs.screen} edges={['top', 'bottom']}>

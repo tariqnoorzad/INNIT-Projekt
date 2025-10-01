@@ -1,25 +1,45 @@
-// Denne del af appen viser en liste over billetter, som brugeren kan søge og filtrere i.
-// Skærmen indeholder et søgefelt, en filterbar og en liste over resultater.
-// Når brugeren trykker på en billet, navigeres der til TicketDetailsScreen med den valgte billets ID.
-
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { gs } from '../../../styles/globalstyle';
-import data from '../data/mockTickets.json';
 import cats from '../data/categories.json';
 import FilterBar from '../components/FilterBar';
+import { rtdb } from '../Firebase/database';
+import { ref, onValue } from 'firebase/database';
 
 export default function SearchResultsScreen({ navigation }) {
-  // q = søgeterm fra inputfeltet
+  // Søgeterm
   const [q, setQ] = useState('');
-  // cat = valgt kategori (default = 'all'), hvilket betyder ingen filtrering på kategori
+  // Valgt kategori
   const [cat, setCat] = useState('all');
+  // Billetter hentet fra Firebase
+  const [tickets, setTickets] = useState([]);
 
-  // Filtrér data baseret på søgeterm og valgt kategori
+  // Hent billetter fra Firebase Realtime Database
+  useEffect(() => {
+    const ticketsRef = ref(rtdb, 'tickets'); // sti til dine billetter i RTDB
+    const unsubscribe = onValue(ticketsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        // Konverter object til array med id
+        const formatted = Object.keys(data).map((key) => ({
+          id: key,
+          ...data[key],
+        }));
+        setTickets(formatted);
+      } else {
+        setTickets([]);
+      }
+    });
+
+    // Cleanup ved unmount
+    return () => unsubscribe();
+  }, []);
+
+  // Filtrér billetter baseret på søgeterm og kategori
   const results = useMemo(() => {
     const s = q.trim().toLowerCase();
-    return data.filter(d => {
+    return tickets.filter(d => {
       const matchText =
         !s ||
         d.title.toLowerCase().includes(s) ||
@@ -27,7 +47,7 @@ export default function SearchResultsScreen({ navigation }) {
       const matchCat = cat === 'all' || d.category === cat;
       return matchText && matchCat;
     });
-  }, [q, cat]);
+  }, [q, cat, tickets]);
 
   return (
     <SafeAreaView style={gs.screen} edges={['top', 'bottom']}>
@@ -39,7 +59,6 @@ export default function SearchResultsScreen({ navigation }) {
         keyboardShouldPersistTaps="handled"
 
         ListHeaderComponent={
-          /* Header-komponenten indeholder søgefeltet og filterbaren */
           <View style={{ marginBottom: 12 }}>
             <Text style={[gs.title, { marginBottom: 8 }]}>Find billetter</Text>
 
@@ -57,7 +76,6 @@ export default function SearchResultsScreen({ navigation }) {
               }}
             />
 
-            {/* Filterbar til valg af kategori */}
             <FilterBar
               selected={cat}
               onChange={setCat}
