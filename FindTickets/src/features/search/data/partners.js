@@ -3,7 +3,7 @@ export const PARTNERS = [
     id: 'p1',
     name: 'Royal Arena',
     desc: 'Danmarks største indendørs arena med koncerter og sport.',
-    image: 'C:\Users\Lenovo\Desktop\INNIT-Projekt\FindTickets\assets\download.jpg',
+    image: 'https://images.unsplash.com/photo-1558888400-0ef6fbb0c9f1',
   },
   {
     id: 'p2',

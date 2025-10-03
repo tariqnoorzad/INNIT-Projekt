@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons'; // Hvis du IKKE bruger Expo, brug
 
 import SearchStack from './src/navigation/SearchStack';
 import SearchResultsScreen from './src/features/search/screens/SearchResultsScreen'; // tjek sti
+import SellTicket from './src/features/search/screens/SellTicket';
 
 const Tab = createBottomTabNavigator();
 
@@ -46,6 +47,14 @@ export default function App() {
             <Tab.Screen
               name="Search"
               component={SearchResultsScreen}
+            />
+            <Tab.Screen
+              name="Sell"
+              component={SellTicket}
+              options={{
+                tabBarIcon: ({ color, size }) => (
+                  <Ionicons name="ticket" size={size} color={color} />
+                ),}}
             />
           </Tab.Navigator>
         </NavigationContainer>

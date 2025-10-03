@@ -6,44 +6,66 @@ import cats from '../data/categories.json';
 import FilterBar from '../components/FilterBar';
 import { rtdb } from '../Firebase/database';
 import { ref, onValue } from 'firebase/database';
+import { formatDateFriendly } from '../Utils/date';
+
+// Hjælpefunktion – undgår crash og håndterer "YYYY/DD/MM" string
+function formatDate(dt) {
+  if (!dt) return 'Ukendt dato';
+
+  // Hvis dt allerede er et Date objekt
+  if (dt instanceof Date) return dt.toLocaleDateString('da-DK', { day: '2-digit', month: 'short', year: 'numeric' });
+
+  // Hvis dt er string i format "YYYY/DD/MM"
+  const parts = dt.split('/');
+  if (parts.length === 3) {
+    const [year, day, month] = parts.map(Number);
+    // Bemærk: month i JS Date er 0-indexed
+    const dateObj = new Date(year, month - 1, day);
+    if (!isNaN(dateObj)) {
+      return dateObj.toLocaleDateString('da-DK', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+  }
+
+  // Fallback
+  return dt;
+}
 
 export default function SearchResultsScreen({ navigation }) {
-  // Søgeterm
-  const [q, setQ] = useState('');
-  // Valgt kategori
-  const [cat, setCat] = useState('all');
-  // Billetter hentet fra Firebase
-  const [tickets, setTickets] = useState([]);
+  const [q, setQ] = useState('');               
+  const [cat, setCat] = useState('all');         
+  const [dbCategories, setDbCategories] = useState([]); 
+  const [tickets, setTickets] = useState([]); 
 
-  // Hent billetter fra Firebase Realtime Database
   useEffect(() => {
-    const ticketsRef = ref(rtdb, 'tickets'); // sti til dine billetter i RTDB
+    const ticketsRef = ref(rtdb, 'tickets');
     const unsubscribe = onValue(ticketsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        // Konverter object til array med id
         const formatted = Object.keys(data).map((key) => ({
           id: key,
           ...data[key],
         }));
         setTickets(formatted);
+  
+        // ✅ Hent unikke kategorier fra billetterne
+        const categories = [...new Set(formatted.map(t => t.category).filter(Boolean))];
+        setDbCategories(categories);
       } else {
         setTickets([]);
+        setDbCategories([]);
       }
     });
-
-    // Cleanup ved unmount
     return () => unsubscribe();
   }, []);
 
-  // Filtrér billetter baseret på søgeterm og kategori
+
   const results = useMemo(() => {
     const s = q.trim().toLowerCase();
-    return tickets.filter(d => {
+    return tickets.filter((d) => {
       const matchText =
         !s ||
         d.title.toLowerCase().includes(s) ||
-        d.city.toLowerCase().includes(s);
+        (d.city && d.city.toLowerCase().includes(s));
       const matchCat = cat === 'all' || d.category === cat;
       return matchText && matchCat;
     });
@@ -57,11 +79,9 @@ export default function SearchResultsScreen({ navigation }) {
         contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-
         ListHeaderComponent={
           <View style={{ marginBottom: 12 }}>
             <Text style={[gs.title, { marginBottom: 8 }]}>Find billetter</Text>
-
             <TextInput
               placeholder="Søg efter koncert, kamp, teater…"
               placeholderTextColor="#8A8F98"
@@ -75,35 +95,39 @@ export default function SearchResultsScreen({ navigation }) {
                 marginBottom: 12,
               }}
             />
-
             <FilterBar
               selected={cat}
               onChange={setCat}
-              items={cats?.filters ?? []}
+              items={dbCategories.map(c => ({ id: c, title: c }))} // map til {id, title}
             />
           </View>
         }
-
         ListEmptyComponent={
           <View style={{ paddingTop: 24 }}>
             <Text style={gs.subtitle}>Ingen resultater</Text>
           </View>
         }
-
         renderItem={({ item }) => (
           <TouchableOpacity
             style={[gs.listItem, { marginBottom: 10 }]}
             onPress={() => navigation.navigate('Search/Details', { id: item.id })}
             activeOpacity={0.8}
           >
+            {/* Titel */}
             <Text style={{ color: 'white', fontWeight: '600' }}>
               {item.title}
             </Text>
 
             <Text style={gs.subtitle}>
-              {item.city} · {new Date(item.dateTime).toLocaleString('da-DK')}
+              {(item.city && item.city.trim()) ? item.city : 'Ukendt by'} · {formatDateFriendly(item.dateTime)}
             </Text>
 
+            {/* Pris */}
+            <Text style={[gs.subtitle, { marginTop: 4 }]}>
+              Pris: {item.price} DKK
+            </Text>
+
+            {/* Verified badge */}
             {item.isVerified && (
               <View
                 style={[
@@ -115,6 +139,7 @@ export default function SearchResultsScreen({ navigation }) {
               </View>
             )}
 
+            {/* CTA knap */}
             <View style={[gs.buttonPrimary, { marginTop: 10 }]}>
               <Text style={gs.buttonTextDark}>View details</Text>
             </View>

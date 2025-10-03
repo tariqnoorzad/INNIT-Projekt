@@ -46,6 +46,19 @@ export default function SellTicket({ navigation }) {
         // Generer unik nøgle til billetten
         const newTicketRef = push(ticketsRef);
         const newId = newTicketRef.key; // 👈 henter id
+
+        // Parser brugerinput til Date
+          let dateObj;
+          try {
+            dateObj = new Date(form.dateTime);
+            if (isNaN(dateObj)) throw new Error("Invalid date");
+          } catch {
+            Alert.alert(
+              "Ugyldig dato",
+              "Indtast venligst dato i formatet YYYY-MM-DD HH:mm"
+            );
+            return; // Stopper funktionen, hvis datoen er forkert
+          }
     
         await set(newTicketRef, {
           id: newId, // 👈 gem id med i objektet
@@ -56,7 +69,7 @@ export default function SellTicket({ navigation }) {
           qty: Number(form.qty),
           city: form.city,
           note: form.note,
-          dateTime: form.dateTime,
+          dateTime: dateObj.toISOString(),
           createdAt: new Date().toISOString(),
         });
     
@@ -150,7 +163,7 @@ export default function SellTicket({ navigation }) {
 
         {/* Dato */}
         <TextInput
-          placeholder="Dato (fx 2025-10-15 20:00)"
+          placeholder="Dato (YYYY-MM-DD HH:mm)"
           placeholderTextColor="#666"
           value={form.dateTime}
           onChangeText={(v) => handleChange('dateTime', v)}
