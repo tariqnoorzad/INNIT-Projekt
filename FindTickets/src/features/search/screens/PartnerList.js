@@ -10,13 +10,13 @@ export default function PartnersList({ navigation }) {
 const renderItem = ({ item }) => (
   <Pressable
     onPress={() => navigation.navigate('PartnerDetail', { partner: item })}
-    style={{ marginBottom: 4 }} // næsten ingen luft
+    style={{ marginBottom: 20 }} // lidt luft mellem hver partner
   >
     <ImageBackground
-      source={{ uri: item.image }}
+      source={typeof item.image === 'number' ? item.image : { uri: item.image }}
       style={{
         width: width - 32,
-        height: 180, // samme højde som før
+        height: 190, // en anelse større, så balancen passer med spacing
         justifyContent: 'flex-end',
         borderRadius: 16,
         overflow: 'hidden',
@@ -51,3 +51,5 @@ const renderItem = ({ item }) => (
     </SafeAreaView>
   );
 }
+
+
