@@ -31,19 +31,13 @@ export default function SearchCategoriesScreen({ navigation }) {
         <View>
           <Text style={gs.h1}>Event Now</Text>
           <Text style={[gs.muted, { marginTop: 6 }]}>
-            Find, sælg eller udforsk samarbejdspartnere — alt samlet ét sted.
+            Find, sælg eller udforsk samarbejdspartnere
           </Text>
-          <Pressable
-            onPress={() => navigation.navigate('Search/Results')}
-            style={[gs.buttonPrimary, { marginTop: 14, alignSelf: 'flex-start' }]}
-          >
-            <Text style={gs.buttonTextDark}>Find billetter</Text>
-          </Pressable>
         </View>
 
         {/* QUICK LINKS */}
         <View style={gs.section}>
-          <Text style={gs.title}>EVENT NOW</Text>
+
           <View style={{ marginTop: 12, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
             {entryCats.map((item) => (
               <CategoryCard
@@ -68,9 +62,6 @@ export default function SearchCategoriesScreen({ navigation }) {
         <View style={gs.section}>
           <View style={gs.rowBetween}>
             <Text style={gs.title}>Populært lige nu</Text>
-            <Pressable onPress={() => navigation.navigate('Search/Results')}>
-              <Text style={gs.muted}>Se alle</Text>
-            </Pressable>
           </View>
 
           <ScrollView
@@ -98,17 +89,6 @@ export default function SearchCategoriesScreen({ navigation }) {
           </ScrollView>
         </View>
 
-        {/* TRUSTED PARTNERS */}
-        <View style={gs.section}>
-          <Text style={gs.title}>Trygge partnere</Text>
-          <View style={{ flexDirection: 'row', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
-            {partners.map((p) => (
-              <View key={p} style={[gs.card, gs.shadowSm, { paddingVertical: 8, paddingHorizontal: 12 }]}>
-                <Text style={{ color: 'white', fontWeight: '600' }}>{p}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
       </ScrollView>
     </SafeAreaView>
   );

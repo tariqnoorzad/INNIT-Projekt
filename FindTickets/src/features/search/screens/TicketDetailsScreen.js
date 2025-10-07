@@ -120,7 +120,7 @@ export default function TicketDetailsScreen({ route }) {
         </View>
 
         {/* CTA knapper */}
-        <Pressable style={{ marginTop: 12 }} onPress={() => alert('Report issue – stub')}>
+        <Pressable style={{ marginTop: 12 }} onPress={() => alert('Report issue')}>
           <Text style={{ color: 'white' }}>Report issue</Text>
         </Pressable>
       </ScrollView>
@@ -133,7 +133,7 @@ export default function TicketDetailsScreen({ route }) {
         </View>
         <Pressable
           style={[gs.buttonPrimary, { flex: 1.2, height: 48, borderRadius: 12 }]}
-          onPress={() => alert('Secure checkout – stub')}
+          onPress={() => alert('Secure checkout')}
         >
           <Text style={gs.buttonTextDark}>Buy securely</Text>
         </Pressable>

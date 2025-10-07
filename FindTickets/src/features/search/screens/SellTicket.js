@@ -113,7 +113,7 @@ export default function SellTicket({ navigation }) {
 
         {/* Partner */}
         <TextInput
-          placeholder="Partner (fx Tivoli, Royal Arena)"
+          placeholder="Placering"
           placeholderTextColor="#666"
           value={form.partner}
           onChangeText={(v) => handleChange('partner', v)}

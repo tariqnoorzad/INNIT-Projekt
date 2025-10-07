@@ -7,7 +7,7 @@ export const gs = StyleSheet.create({
   // Typography
   title: { fontSize: 18, fontWeight: '700', color: 'white' },
   subtitle: { fontSize: 12, color: '#B8BDC7' },
-  h1: { fontSize: 24, fontWeight: '800', color: 'white', letterSpacing: 0.2 },
+  h1: { fontSize: 34, fontWeight: '800', color: 'white', letterSpacing: 0.2 },
   muted: { color: '#B8BDC7' },
 
   // Layout
