@@ -8,21 +8,7 @@ import { gs } from '../../../styles/globalstyle';
 import { formatDateFriendly, formatDateLong } from '../Utils/date';
 
 
-// Hjælpefunktioner til datoformatering
-function formatShort(dt) {
-  try {
-    return new Date(dt).toLocaleDateString('da-DK', { day: '2-digit', month: 'short' });
-  } catch {
-    return dt;
-  }
-}
-function formatLong(dt) { 
-  try {
-    return new Date(dt).toLocaleString('da-DK', { weekday: 'short', day: '2-digit', month: 'long' });
-  } catch {
-    return dt;
-  }
-}
+
 
 function MetaItem({ icon, children }) {
   return ( 
@@ -83,13 +69,7 @@ export default function TicketDetailsScreen({ route }) {
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 120 }}>
         {/* Titel & basisinfo */}
         <Text style={gs.h1}>{ticket.title}</Text>
-        <Text style={[gs.muted, { marginTop: 6 }]}>
-  {ticket.city || "Ukendt by"} · {formatDateFriendly(ticket.dateTime)}
-</Text>
-        <Text style={[gs.muted, { marginTop: 6 }]}>
-          Pris: <Text style={{ color: 'white', fontWeight: '800' }}>{ticket.price} DKK</Text>
-        </Text>
-
+   
         {/* Info-kort */}
         <View style={[gs.card, gs.shadowSm, { marginTop: 16 }]}>
           <View style={[gs.rowBetween, { alignItems: 'center' }]}>
