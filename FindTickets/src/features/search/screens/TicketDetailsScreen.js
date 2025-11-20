@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, View, Text, Pressable, ActivityIndicator } from 'react-native';
+import { ScrollView, View, Text, Pressable, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import { ref, get } from "firebase/database";
-import { rtdb } from "../Firebase/database"; // tilpas sti
+import { ref, get, set, update, remove, push } from 'firebase/database';
+import { rtdb, auth } from '../Firebase/database'; // 🔥 nu også auth
 import { gs } from '../../../styles/globalstyle';
 import { formatDateLong } from '../Utils/date';
 
@@ -16,10 +16,11 @@ function MetaItem({ icon, children }) {
   );
 }
 
-export default function TicketDetailsScreen({ route }) {
+export default function TicketDetailsScreen({ route, navigation }) {
   const { id } = route.params || {}; // fx "-OaVGWaKCCmV8fnVDX38"
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [buying, setBuying] = useState(false);
 
   // NYT: state til antal billetter
   const [quantity, setQuantity] = useState(1);
@@ -67,10 +68,70 @@ export default function TicketDetailsScreen({ route }) {
   const unitPrice = Number(ticket.price) || 0;
   const totalPrice = unitPrice * quantity;
 
-  const handleBuy = () => {
-    // Her skal du senere kalde din rigtige "køb"-logik / backend
-    // fx: buyTicket({ ticketId: ticket.id, quantity })
-    alert(`Secure checkout\n\nAntal: ${quantity}\nTotal: ${totalPrice} DKK`);
+  const handleBuy = async () => {
+    const user = auth.currentUser;
+
+    if (!user) {
+      Alert.alert('Login påkrævet', 'Du skal være logget ind for at købe en billet.');
+      return;
+    }
+
+    setBuying(true);
+
+    try {
+      const ticketRef = ref(rtdb, `tickets/${ticket.id}`);
+      const snap = await get(ticketRef);
+
+      if (!snap.exists()) {
+        Alert.alert('Ups', 'Billetten findes ikke længere.');
+        return;
+      }
+
+      const latestTicket = snap.val();
+      const availableQty = latestTicket.qty || 1;
+
+      if (quantity > availableQty) {
+        Alert.alert(
+          'Ikke nok billetter',
+          `Der er kun ${availableQty} billett(er) tilbage.`
+        );
+        return;
+      }
+
+      // 1) Gem købet under brugeren
+      const purchasesRef = ref(rtdb, `userPurchases/${user.uid}`);
+      const newPurchaseRef = push(purchasesRef);
+
+      await set(newPurchaseRef, {
+        ticketId: ticket.id,
+        quantity,
+        purchasedAt: Date.now(),
+        // Gem lidt info om billetten, så du nemt kan vise den i "Mine billetter"
+        title: latestTicket.title,
+        price: latestTicket.price,
+        dateTime: latestTicket.dateTime,
+        city: latestTicket.city || null,
+        partner: latestTicket.partner || null,
+      });
+
+      // 2) Opdater eller slet billetten i tickets
+      if (availableQty - quantity <= 0) {
+        // Ingen billetter tilbage → fjern fra liste
+        await remove(ticketRef);
+      } else {
+        await update(ticketRef, { qty: availableQty - quantity });
+      }
+
+      Alert.alert('Success', 'Din billet er købt.');
+
+      // 3) Naviger tilbage (search-listen vil automatisk opdatere fra RTDB)
+      navigation.goBack();
+    } catch (err) {
+      console.error('Error buying ticket:', err);
+      Alert.alert('Fejl', 'Noget gik galt under køb. Prøv igen.');
+    } finally {
+      setBuying(false);
+    }
   };
 
   return (
@@ -123,13 +184,20 @@ export default function TicketDetailsScreen({ route }) {
               <Text style={{ color: 'white', fontSize: 20 }}>−</Text>
             </Pressable>
 
-            <Text style={{ color: 'white', fontSize: 18, fontWeight: '700', minWidth: 32, textAlign: 'center' }}>
+            <Text
+              style={{
+                color: 'white',
+                fontSize: 18,
+                fontWeight: '700',
+                minWidth: 32,
+                textAlign: 'center',
+              }}
+            >
               {quantity}
             </Text>
 
             <Pressable
               onPress={() => {
-                // Hvis du vil begrænse til max antal til salg:
                 if (ticket.qty && quantity >= ticket.qty) return;
                 setQuantity(q => q + 1);
               }}
@@ -164,7 +232,7 @@ export default function TicketDetailsScreen({ route }) {
         </View>
 
         {/* Report */}
-        <Pressable style={{ marginTop: 12 }} onPress={() => alert('Report issue')}>
+        <Pressable style={{ marginTop: 12 }} onPress={() => Alert.alert('Report', 'Report issue')}>
           <Text style={{ color: 'white' }}>Report issue</Text>
         </Pressable>
       </ScrollView>
@@ -181,10 +249,15 @@ export default function TicketDetailsScreen({ route }) {
           </Text>
         </View>
         <Pressable
-          style={[gs.buttonPrimary, { flex: 1.2, height: 48, borderRadius: 12 }]}
+          style={[gs.buttonPrimary, { flex: 1.2, height: 48, borderRadius: 12, opacity: buying ? 0.7 : 1 }]}
           onPress={handleBuy}
+          disabled={buying}
         >
-          <Text style={gs.buttonTextDark}>Buy securely</Text>
+          {buying ? (
+            <ActivityIndicator color="#0E0F13" />
+          ) : (
+            <Text style={gs.buttonTextDark}>Buy securely</Text>
+          )}
         </Pressable>
       </View>
     </SafeAreaView>

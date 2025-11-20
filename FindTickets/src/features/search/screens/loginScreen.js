@@ -15,14 +15,16 @@ import { auth, rtdb } from '../Firebase/database';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  updateProfile,
 } from 'firebase/auth';
 import { ref, set } from 'firebase/database';
 import { gs } from '../../../styles/globalstyle';
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen() {
   const [mode, setMode] = useState('login'); // 'login' | 'signup'
   const isLogin = mode === 'login';
 
+  const [name, setName] = useState('');      // 👈 NYT
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -32,8 +34,8 @@ export default function LoginScreen({ navigation }) {
   const handleSubmit = async () => {
     setError('');
 
-    if (!email || !password) {
-      setError('Udfyld både email og kodeord.');
+    if (!email || !password || (!isLogin && !name)) {
+      setError(isLogin ? 'Udfyld email og kodeord.' : 'Udfyld navn, email og kodeord.');
       return;
     }
 
@@ -42,12 +44,14 @@ export default function LoginScreen({ navigation }) {
       let userCredential;
 
       if (isLogin) {
+        // 🔓 Login
         userCredential = await signInWithEmailAndPassword(
           auth,
           email.trim(),
           password
         );
       } else {
+        // 🆕 Opret bruger
         userCredential = await createUserWithEmailAndPassword(
           auth,
           email.trim(),
@@ -56,13 +60,22 @@ export default function LoginScreen({ navigation }) {
 
         const user = userCredential.user;
 
+        // Sæt displayName i Firebase Auth (valgfrit, men nice)
+        try {
+          await updateProfile(user, { displayName: name });
+        } catch (e) {
+          console.log('updateProfile error', e);
+        }
+
+        // Gem brugerprofil i Realtime Database
         await set(ref(rtdb, `users/${user.uid}`), {
           email: user.email,
+          name,
           createdAt: Date.now(),
         });
       }
 
-      navigation.replace('Search/Categories');
+      // App.js fanger login via onAuthStateChanged og viser tabs
     } catch (err) {
       console.log('Auth error', err);
       setError(mapFirebaseError(err));
@@ -84,10 +97,25 @@ export default function LoginScreen({ navigation }) {
             : 'Lav en konto og kom i gang.'}
         </Text>
 
-        {/* Kort med form */}
         <View style={[gs.card, gs.shadowSm, styles.card]}>
+          {/* Navn kun ved oprettelse */}
+          {!isLogin && (
+            <>
+              <Text style={styles.label}>Navn</Text>
+              <TextInput
+                value={name}
+                onChangeText={setName}
+                placeholder="Dit navn"
+                placeholderTextColor="#6B7280"
+                style={styles.input}
+              />
+            </>
+          )}
+
           {/* Email */}
-          <Text style={styles.label}>Email</Text>
+          <Text style={[styles.label, !isLogin && { marginTop: 16 }]}>
+            Email
+          </Text>
           <TextInput
             autoCapitalize="none"
             keyboardType="email-address"
@@ -131,14 +159,19 @@ export default function LoginScreen({ navigation }) {
             )}
           </Pressable>
 
-          {/* Skift til login/opret */}
+          {/* Skift mellem login / signup */}
           <View style={styles.switchRow}>
             <Text style={gs.muted}>
               {isLogin
                 ? 'Har du ikke en konto? '
                 : 'Har du allerede en konto? '}
             </Text>
-            <Pressable onPress={() => setMode(isLogin ? 'signup' : 'login')}>
+            <Pressable
+              onPress={() => {
+                setMode(isLogin ? 'signup' : 'login');
+                setError('');
+              }}
+            >
               <Text style={styles.switchLink}>
                 {isLogin ? 'Opret dig' : 'Log ind'}
               </Text>

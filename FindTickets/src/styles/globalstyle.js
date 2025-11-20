@@ -32,7 +32,7 @@ export const gs = StyleSheet.create({
 
   // List items (du bruger dem i Results)
   listItem: { backgroundColor: '#191B22', padding: 12, borderRadius: 12 },
-  badgeVerified: { backgroundColor: '#22C55E', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999 },
+  badgeVerified: { backgroundColor: '#0E0F13', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999 },
 
   pill: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, backgroundColor: '#191B22' },
 pricePill: { backgroundColor: '#6EE7B7', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12 },
@@ -46,7 +46,4 @@ ctaBar: {
   borderTopWidth: 1, borderTopColor: '#1F232B',
   padding: 12, paddingBottom: 16,
   flexDirection: 'row', alignItems: 'center', gap: 12
-},
-
-
-});
+},});

@@ -1,62 +1,118 @@
 import 'react-native-gesture-handler';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons'; // Hvis du IKKE bruger Expo, brug: import Ionicons from 'react-native-vector-icons/Ionicons';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
 
 import SearchStack from './src/navigation/SearchStack';
-import SearchResultsScreen from './src/features/search/screens/SearchResultsScreen'; // tjek sti
+import SearchResultsScreen from './src/features/search/screens/SearchResultsScreen';
 import SellTicket from './src/features/search/screens/SellTicket';
+import LoginScreen from './src/features/search/screens/loginScreen';
+import ProfileScreen from './src/features/search/screens/profileScreen';
+
+
+import { auth } from './src/features/search/Firebase/database';
+import { onAuthStateChanged } from 'firebase/auth';
 
 const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
 
+// 🔹 Dine tabs, som før
+function MainTabs() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarActiveTintColor: '#6EE7B7',
+        tabBarInactiveTintColor: '#B3B3B3',
+        tabBarStyle: {
+          backgroundColor: '#0E0F13',
+          borderTopWidth: 0,
+        },
+        tabBarIcon: ({ color, size }) => {
+          let iconName;
+        
+          if (route.name === 'Home') {
+            iconName = 'home';
+          } else if (route.name === 'Search') {
+            iconName = 'search';
+          } else if (route.name === 'Sell') {
+            iconName = 'ticket';
+          } else if (route.name === 'Profile') {
+            iconName = 'person';
+          }
+        
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+      })}
+    >
+      {/* Første tab: hele search-flow (stack) */}
+      <Tab.Screen name="Home" component={SearchStack} />
+
+      {/* Anden tab: direkte søgeskærm */}
+      <Tab.Screen name="Search" component={SearchResultsScreen} />
+
+      {/* Tredje tab: sælg billet direkte */}
+      <Tab.Screen name="Sell" component={SellTicket} />
+
+      <Tab.Screen name="Profile" component={ProfileScreen} />
+
+    </Tab.Navigator>
+  );
+}
+
+// 🔹 Simpel stack til auth-flow (lige nu kun loginScreen)
+function AuthStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Login" component={LoginScreen} />
+    </Stack.Navigator>
+  );
+}
 
 export default function App() {
+  const [user, setUser] = useState(null);
+  const [initializing, setInitializing] = useState(true);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+      setInitializing(false);
+    });
+
+    return unsub;
+  }, []);
+
+  // Simpel loading mens vi finder ud af om der er en bruger
+  if (initializing) {
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: '#0E0F13',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <ActivityIndicator size="large" color="#6EE7B7" />
+          </View>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    );
+  }
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <NavigationContainer>
-          <Tab.Navigator
-            screenOptions={({ route }) => ({
-              headerShown: false,
-              tabBarActiveTintColor: '#6EE7B7', // Spotify grøn
-              tabBarInactiveTintColor: '#B3B3B3', // grå
-              tabBarStyle: {
-                backgroundColor: '#0E0F13', // Spotify mørk baggrund
-                borderTopWidth: 0,
-              },
-              tabBarIcon: ({ color, size }) => {
-                let iconName;
-
-                if (route.name === 'Home') {
-                  iconName = 'home';
-                } else if (route.name === 'Search') {
-                  iconName = 'search'; // skiftet fra map til search
-                }
-
-                return <Ionicons name={iconName} size={size} color={color} />;
-              },
-            })}
-          >
-            {/* Første tab: hele search-flow (stack) */}
-            <Tab.Screen name="Home" component={SearchStack} />
-
-            {/* Anden tab: direkte søge screen */}
-            <Tab.Screen
-              name="Search"
-              component={SearchResultsScreen}
-            />
-            <Tab.Screen
-              name="Sell"
-              component={SellTicket}
-              options={{
-                tabBarIcon: ({ color, size }) => (
-                  <Ionicons name="ticket" size={size} color={color} />
-                ),}}
-            />
-          </Tab.Navigator>
+          {/* Hvis der er en bruger -> vis tabs, ellers login */}
+          {user ? <MainTabs /> : <AuthStack />}
         </NavigationContainer>
       </SafeAreaProvider>
     </GestureHandlerRootView>

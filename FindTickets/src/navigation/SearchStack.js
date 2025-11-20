@@ -1,3 +1,5 @@
+// src/navigation/SearchStack.js
+
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -8,22 +10,11 @@ import SellTicket from '../features/search/screens/SellTicket';
 import PartnersList from '../features/search/screens/PartnerList';
 import PartnerDetail from '../features/search/screens/PartnerDetail';
 
-// 👇 NYT: import login screen
-import LoginScreen from '../features/search/screens/loginScreen';
-
 const Stack = createNativeStackNavigator();
 
 export default function SearchStack() {
   return (
-    <Stack.Navigator initialRouteName="Login">
-      {/* 🔐 Login / Opret bruger */}
-      <Stack.Screen
-        name="Login"
-        component={LoginScreen}
-        options={{ headerShown: false }}
-      />
-
-      {/* Resten af appen efter login */}
+    <Stack.Navigator>
       <Stack.Screen
         name="Search/Categories"
         component={SearchCategoriesScreen}
@@ -39,18 +30,9 @@ export default function SearchStack() {
         component={TicketDetailsScreen}
         options={{ title: 'Detaljer' }}
       />
-      <Stack.Screen
-        name="SellTicket"
-        component={SellTicket}
-      />
-      <Stack.Screen
-        name="PartnersList"
-        component={PartnersList}
-      />
-      <Stack.Screen
-        name="PartnerDetail"
-        component={PartnerDetail}
-      />
+      <Stack.Screen name="SellTicket" component={SellTicket} />
+      <Stack.Screen name="PartnersList" component={PartnersList} />
+      <Stack.Screen name="PartnerDetail" component={PartnerDetail} />
     </Stack.Navigator>
   );
 }
