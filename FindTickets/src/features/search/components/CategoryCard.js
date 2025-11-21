@@ -12,7 +12,7 @@ import { gs } from '../../../styles/globalstyle';
 // Hvis ikonet ikke findes i mappet, bruges et standardikon
 const ICON_MAP = {
   search: 'magnify',
-  'ticket-plus': 'ticket-plus',
+  'ticket-plus': 'ticket',
   handshake: 'handshake-outline', 
 };
 

@@ -12,9 +12,16 @@ import PartnerDetail from '../features/search/screens/PartnerDetail';
 
 const Stack = createNativeStackNavigator();
 
-export default function SearchStack() {
+export default function SearchStack({ route }) {
+  // mode kommer fra Tabs via initialParams
+  const mode = route?.params?.mode ?? 'home';
+
+  // Bestem hvilken screen der skal være først
+  const initialRouteName =
+    mode === 'search' ? 'Search/Results' : 'Search/Categories';
+
   return (
-    <Stack.Navigator>
+    <Stack.Navigator initialRouteName={initialRouteName}>
       <Stack.Screen
         name="Search/Categories"
         component={SearchCategoriesScreen}

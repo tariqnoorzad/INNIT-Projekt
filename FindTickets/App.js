@@ -35,7 +35,7 @@ function MainTabs() {
         },
         tabBarIcon: ({ color, size }) => {
           let iconName;
-        
+
           if (route.name === 'Home') {
             iconName = 'home';
           } else if (route.name === 'Search') {
@@ -45,25 +45,34 @@ function MainTabs() {
           } else if (route.name === 'Profile') {
             iconName = 'person';
           }
-        
+
           return <Ionicons name={iconName} size={size} color={color} />;
         },
       })}
     >
-      {/* Første tab: hele search-flow (stack) */}
-      <Tab.Screen name="Home" component={SearchStack} />
+      {/* Home-tab: bruger SearchStack → starter i kategori-mode */}
+      <Tab.Screen
+        name="Home"
+        component={SearchStack}
+        initialParams={{ mode: 'home' }}
+      />
 
-      {/* Anden tab: direkte søgeskærm */}
-      <Tab.Screen name="Search" component={SearchResultsScreen} />
+      {/* Search-tab: også SearchStack → men i search-mode */}
+      <Tab.Screen
+        name="Search"
+        component={SearchStack}
+        initialParams={{ mode: 'search' }}
+      />
 
-      {/* Tredje tab: sælg billet direkte */}
+      {/* Sell-tab: direkte skærm */}
       <Tab.Screen name="Sell" component={SellTicket} />
 
+      {/* Profile-tab */}
       <Tab.Screen name="Profile" component={ProfileScreen} />
-
     </Tab.Navigator>
   );
 }
+
 
 // 🔹 Simpel stack til auth-flow (lige nu kun loginScreen)
 function AuthStack() {
