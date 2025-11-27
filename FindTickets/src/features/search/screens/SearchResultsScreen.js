@@ -36,6 +36,8 @@ export default function SearchResultsScreen({ navigation }) {
   const [dbCategories, setDbCategories] = useState([]); 
   const [tickets, setTickets] = useState([]); 
 
+  const DEFAULT_CATEGORIES = ['Comedy', 'Musik', 'Sport', 'Festival', 'Teater', 'Andet'];
+
   useEffect(() => {
     const ticketsRef = ref(rtdb, 'tickets');
     const unsubscribe = onValue(ticketsRef, (snapshot) => {
@@ -71,6 +73,14 @@ export default function SearchResultsScreen({ navigation }) {
     });
   }, [q, cat, tickets]);
 
+  const filterItems = useMemo(() => {
+    const merged = new Set([
+      ...DEFAULT_CATEGORIES,
+      ...dbCategories.filter(Boolean),
+    ]);
+    return Array.from(merged).map((c) => ({ id: c, title: c }));
+  }, [dbCategories]);
+
   return (
     <SafeAreaView style={gs.screen} edges={['top', 'bottom']}>
       <FlatList
@@ -98,7 +108,7 @@ export default function SearchResultsScreen({ navigation }) {
             <FilterBar
               selected={cat}
               onChange={setCat}
-              items={dbCategories.map(c => ({ id: c, title: c }))} // map til {id, title}
+              items={filterItems}
             />
           </View>
         }

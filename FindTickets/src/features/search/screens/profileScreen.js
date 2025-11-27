@@ -19,8 +19,11 @@ import { formatDateLong, formatDateFriendly } from '../../search/Utils/date';
 export default function ProfileScreen() {
   const [profile, setProfile] = useState(null);
   const [purchases, setPurchases] = useState([]);
+  const [ratings, setRatings] = useState([]);
+  const [ratingSummary, setRatingSummary] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [loadingPurchases, setLoadingPurchases] = useState(true);
+  const [loadingRatings, setLoadingRatings] = useState(true);
   const user = auth.currentUser;
 
   useEffect(() => {
@@ -52,9 +55,28 @@ export default function ProfileScreen() {
       setLoadingPurchases(false);
     });
 
+    const ratingsRef = ref(rtdb, `userRatings/${user.uid}`);
+    const unsubRatings = onValue(ratingsRef, (snap) => {
+      const val = snap.val() || {};
+      const list = Object.entries(val).map(([id, v]) => ({
+        id,
+        ...v,
+      }));
+      list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      setRatings(list);
+      setLoadingRatings(false);
+    });
+
+    const ratingSummaryRef = ref(rtdb, `users/${user.uid}/ratingSummary`);
+    const unsubRatingSummary = onValue(ratingSummaryRef, (snap) => {
+      setRatingSummary(snap.val() || null);
+    });
+
     return () => {
       unsubUser();
       unsubPurchases();
+      unsubRatings();
+      unsubRatingSummary();
     };
   }, [user]);
 
@@ -79,6 +101,7 @@ export default function ProfileScreen() {
   }
 
   const isLoading = loadingProfile || loadingPurchases;
+  const isRatingsLoading = loadingRatings;
 
   const displayName =
     profile?.name ||
@@ -157,6 +180,39 @@ export default function ProfileScreen() {
             >
               <Text style={gs.buttonTextDark}>Log ud</Text>
             </Pressable>
+          </View>
+
+          {/* Modtagne ratings */}
+          <View style={[gs.section, { marginTop: 24 }]}>
+            <Text style={gs.title}>Modtagne ratings</Text>
+            {isRatingsLoading ? (
+              <ActivityIndicator style={{ marginTop: 12 }} color="#6EE7B7" />
+            ) : ratingSummary ? (
+              <View style={[gs.card, { marginTop: 12 }]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Icon name="star" size={20} color="#FACC15" />
+                  <Text style={{ color: 'white', fontWeight: '700', fontSize: 16 }}>
+                    {ratingSummary.avg?.toFixed(1)}
+                  </Text>
+                  <Text style={gs.muted}>({ratingSummary.count || 0})</Text>
+                </View>
+                {ratings.slice(0, 3).map((r) => (
+                  <View key={r.id} style={[gs.metaRow, { marginTop: 10 }]}>
+                    <Icon name="ticket" size={16} color="#B8BDC7" />
+                    <Text style={gs.metaValue}>
+                      {r.ticketTitle || 'Billet'} · {r.stars}★
+                    </Text>
+                  </View>
+                ))}
+                {ratings.length === 0 && (
+                  <Text style={[gs.muted, { marginTop: 10 }]}>
+                    Ingen detaljerede ratings endnu.
+                  </Text>
+                )}
+              </View>
+            ) : (
+              <Text style={[gs.subtitle, { marginTop: 8 }]}>Ingen ratings endnu.</Text>
+            )}
           </View>
 
           {/* Købte billetter */}

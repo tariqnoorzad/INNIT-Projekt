@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { gs } from '../../../styles/globalstyle';
-import { rtdb } from '../Firebase/database';
+import { rtdb, auth } from '../Firebase/database';
 import { ref, push, set } from 'firebase/database';
 import { FlatList } from 'react-native';
 
@@ -71,6 +71,12 @@ export default function SellTicket() {
   };
 
   const onSubmit = async () => {
+    const user = auth.currentUser;
+    if (!user) {
+      Alert.alert('Login påkrævet', 'Log ind for at sætte en billet til salg.');
+      return;
+    }
+
     if (!canSubmit) {
       Alert.alert(
         'Manglende felter',
@@ -101,6 +107,11 @@ export default function SellTicket() {
         note: form.note,
         dateTime: dateObj.toISOString(),
         createdAt: new Date().toISOString(),
+        sellerId: user.uid,
+        sellerType: 'p2p',
+        sellerName:
+          user.displayName ||
+          (user.email ? user.email.split('@')[0] : 'Sælger'),
       });
 
       Alert.alert('Opslået', 'Din billet er sat til salg.');
@@ -193,7 +204,7 @@ export default function SellTicket() {
         </TouchableOpacity>
 
         <TextInput
-          placeholder="By (valgfri)"
+          placeholder="By"
           placeholderTextColor="#666"
           value={form.city}
           onChangeText={(v) => handleChange('city', v)}
