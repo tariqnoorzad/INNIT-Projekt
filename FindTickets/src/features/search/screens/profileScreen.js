@@ -16,7 +16,7 @@ import { gs } from '../../../styles/globalstyle';
 import { rtdb, auth } from '../../search/Firebase/database';
 import { formatDateLong, formatDateFriendly } from '../../search/Utils/date';
 
-export default function ProfileScreen() {
+export default function ProfileScreen({ navigation }) {
   const [profile, setProfile] = useState(null);
   const [purchases, setPurchases] = useState([]);
   const [ratings, setRatings] = useState([]);
@@ -113,6 +113,7 @@ export default function ProfileScreen() {
     : 'Ukendt';
 
   const mitIdVerified = !!profile?.mitIdVerified;
+  const isPartner = profile?.role === 'partner';
 
   return (
     <SafeAreaView style={gs.screen} edges={['top', 'bottom']}>
@@ -162,6 +163,13 @@ export default function ProfileScreen() {
               <Text style={gs.metaValue}>Medlem siden: {createdAtText}</Text>
             </View>
 
+            <View style={[gs.metaRow, { marginTop: 8 }]}>
+              <Icon name="account-check" size={18} color="#B8BDC7" />
+              <Text style={gs.metaValue}>
+                Rolle: {isPartner ? 'Partner' : 'Privat bruger'}
+              </Text>
+            </View>
+
 
               <View style={[gs.metaRow, { marginTop: 8 }]}>
                 <Icon name="shield-check" size={18} color="#B8BDC7" />
@@ -180,40 +188,54 @@ export default function ProfileScreen() {
             >
               <Text style={gs.buttonTextDark}>Log ud</Text>
             </Pressable>
-          </View>
 
-          {/* Modtagne ratings */}
-          <View style={[gs.section, { marginTop: 24 }]}>
-            <Text style={gs.title}>Modtagne ratings</Text>
-            {isRatingsLoading ? (
-              <ActivityIndicator style={{ marginTop: 12 }} color="#6EE7B7" />
-            ) : ratingSummary ? (
-              <View style={[gs.card, { marginTop: 12 }]}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <Icon name="star" size={20} color="#FACC15" />
-                  <Text style={{ color: 'white', fontWeight: '700', fontSize: 16 }}>
-                    {ratingSummary.avg?.toFixed(1)}
-                  </Text>
-                  <Text style={gs.muted}>({ratingSummary.count || 0})</Text>
-                </View>
-                {ratings.slice(0, 3).map((r) => (
-                  <View key={r.id} style={[gs.metaRow, { marginTop: 10 }]}>
-                    <Icon name="ticket" size={16} color="#B8BDC7" />
-                    <Text style={gs.metaValue}>
-                      {r.ticketTitle || 'Billet'} · {r.stars}★
-                    </Text>
-                  </View>
-                ))}
-                {ratings.length === 0 && (
-                  <Text style={[gs.muted, { marginTop: 10 }]}>
-                    Ingen detaljerede ratings endnu.
-                  </Text>
-                )}
-              </View>
-            ) : (
-              <Text style={[gs.subtitle, { marginTop: 8 }]}>Ingen ratings endnu.</Text>
+            {isPartner && (
+              <Pressable
+                onPress={() => navigation.navigate('Search', { screen: 'PartnerDashboard' })}
+                style={[
+                  gs.buttonPrimary,
+                  { marginTop: 10, alignSelf: 'stretch', backgroundColor: '#4ADE80' },
+                ]}
+              >
+                <Text style={gs.buttonTextDark}>Gå til Partner Dashboard</Text>
+              </Pressable>
             )}
           </View>
+
+          {/* Modtagne ratings - kun for privat sælger (P2P) */}
+          {!isPartner && (
+            <View style={[gs.section, { marginTop: 24 }]}>
+              <Text style={gs.title}>Modtagne ratings</Text>
+              {isRatingsLoading ? (
+                <ActivityIndicator style={{ marginTop: 12 }} color="#6EE7B7" />
+              ) : ratingSummary ? (
+                <View style={[gs.card, { marginTop: 12 }]}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Icon name="star" size={20} color="#FACC15" />
+                    <Text style={{ color: 'white', fontWeight: '700', fontSize: 16 }}>
+                      {ratingSummary.avg?.toFixed(1)}
+                    </Text>
+                    <Text style={gs.muted}>({ratingSummary.count || 0})</Text>
+                  </View>
+                  {ratings.slice(0, 3).map((r) => (
+                    <View key={r.id} style={[gs.metaRow, { marginTop: 10 }]}>
+                      <Icon name="ticket" size={16} color="#B8BDC7" />
+                      <Text style={gs.metaValue}>
+                        {r.ticketTitle || 'Billet'} · {r.stars}★
+                      </Text>
+                    </View>
+                  ))}
+                  {ratings.length === 0 && (
+                    <Text style={[gs.muted, { marginTop: 10 }]}>
+                      Ingen detaljerede ratings endnu.
+                    </Text>
+                  )}
+                </View>
+              ) : (
+                <Text style={[gs.subtitle, { marginTop: 8 }]}>Ingen ratings endnu.</Text>
+              )}
+            </View>
+          )}
 
           {/* Købte billetter */}
           <View style={[gs.section, { marginTop: 24 }]}>

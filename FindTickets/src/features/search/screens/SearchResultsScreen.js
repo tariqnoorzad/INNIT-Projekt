@@ -68,7 +68,9 @@ export default function SearchResultsScreen({ navigation }) {
         !s ||
         d.title.toLowerCase().includes(s) ||
         (d.city && d.city.toLowerCase().includes(s));
-      const matchCat = cat === 'all' || d.category === cat;
+      const matchCat =
+        cat === 'all' ||
+        (d.category && d.category.toLowerCase() === cat.toLowerCase());
       return matchText && matchCat;
     });
   }, [q, cat, tickets]);
@@ -117,7 +119,9 @@ export default function SearchResultsScreen({ navigation }) {
             <Text style={gs.subtitle}>Ingen resultater</Text>
           </View>
         }
-        renderItem={({ item }) => (
+        renderItem={({ item }) => {
+          const isPartnerSeller = item.sellerType === 'partner' || item.isVerified;
+          return (
           <TouchableOpacity
             style={[gs.listItem, { marginBottom: 10 }]}
             onPress={() => navigation.navigate('Search/Details', { id: item.id })}
@@ -137,24 +141,39 @@ export default function SearchResultsScreen({ navigation }) {
               Pris: {item.price} DKK
             </Text>
 
-            {/* Verified badge */}
-            {item.isVerified && (
-              <View
-                style={[
-                  gs.badgeVerified,
-                  { alignSelf: 'flex-start', marginTop: 6 },
-                ]}
-              >
-                <Text style={{ color: '#0E0F13' }}>Verified</Text>
-              </View>
-            )}
+            {/* Seller badge */}
+            <View style={{ flexDirection: 'row', gap: 8, marginTop: 6 }}>
+              {isPartnerSeller ? (
+                <View
+                  style={[
+                    gs.badgeVerified,
+                    { alignSelf: 'flex-start', backgroundColor: '#0E0F13' },
+                  ]}
+                >
+                  <Text style={{ color: '#0EF27F', fontWeight: '700' }}>
+                    Verificeret partner
+                  </Text>
+                </View>
+              ) : (
+                <View
+                  style={[
+                    gs.badgeVerified,
+                    { alignSelf: 'flex-start', backgroundColor: '#111827' },
+                  ]}
+                >
+                  <Text style={{ color: 'white', fontWeight: '700' }}>
+                    Privat sælger
+                  </Text>
+                </View>
+              )}
+            </View>
 
             {/* CTA knap */}
             <View style={[gs.buttonPrimary, { marginTop: 10 }]}>
               <Text style={gs.buttonTextDark}>View details</Text>
             </View>
           </TouchableOpacity>
-        )}
+        )}}
       />
     </SafeAreaView>
   );

@@ -9,6 +9,9 @@ import TicketDetailsScreen from '../features/search/screens/TicketDetailsScreen'
 import SellTicket from '../features/search/screens/SellTicket';
 import PartnersList from '../features/search/screens/PartnerList';
 import PartnerDetail from '../features/search/screens/PartnerDetail';
+import PartnerDashboard from '../features/search/screens/PartnerDashboard';
+import PartnerTicketsScreen from '../features/search/screens/PartnerTicketsScreen';
+import PartnerAuthScreen from '../features/search/screens/PartnerAuthScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -40,6 +43,9 @@ export default function SearchStack({ route }) {
       <Stack.Screen name="SellTicket" component={SellTicket} />
       <Stack.Screen name="PartnersList" component={PartnersList} />
       <Stack.Screen name="PartnerDetail" component={PartnerDetail} />
+      <Stack.Screen name="PartnerTickets" component={PartnerTicketsScreen} />
+      <Stack.Screen name="PartnerDashboard" component={PartnerDashboard} />
+      <Stack.Screen name="PartnerAuth" component={PartnerAuthScreen} options={{ title: 'Partner login' }} />
     </Stack.Navigator>
   );
 }

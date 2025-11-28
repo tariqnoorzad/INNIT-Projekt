@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { gs } from '../../../styles/globalstyle';
 import { rtdb, auth } from '../Firebase/database';
-import { ref, push, set } from 'firebase/database';
+import { ref, push, set, onValue } from 'firebase/database';
 import { FlatList } from 'react-native';
 
 const CATEGORIES = ['Musik', 'Sport', 'Teater', 'Comedy', 'Festival', 'Andet'];
@@ -45,6 +45,8 @@ export default function SellTicket() {
     hour: new Date().getHours(),
     minute: new Date().getMinutes(),
   });
+  const [userRole, setUserRole] = useState('p2p');
+  const [userPartnerName, setUserPartnerName] = useState('');
 
   const handleChange = (k, v) => setForm((s) => ({ ...s, [k]: v }));
 
@@ -69,6 +71,30 @@ export default function SellTicket() {
     handleChange('dateTime', formatDateTime(selectedDate));
     setShowDateModal(false);
   };
+
+  // Hent brugerrolle så vi kan markere partnerbilletter korrekt
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (!user) return;
+    const userRef = ref(rtdb, `users/${user.uid}`);
+    const unsub = onValue(userRef, (snap) => {
+      const data = snap.val() || {};
+      setUserRole(data.role === 'partner' ? 'partner' : 'p2p');
+      setUserPartnerName(
+        data.partnerName ||
+          data.name ||
+          data.displayName ||
+          (user.email ? user.email.split('@')[0] : '')
+      );
+    });
+    return () => unsub();
+  }, []);
+
+  useEffect(() => {
+    if (userRole === 'partner' && userPartnerName) {
+      setForm((s) => ({ ...s, partner: userPartnerName }));
+    }
+  }, [userRole, userPartnerName]);
 
   const onSubmit = async () => {
     const user = auth.currentUser;
@@ -96,6 +122,17 @@ export default function SellTicket() {
         return;
       }
 
+      const sellerType = userRole === 'partner' ? 'partner' : 'p2p';
+      const partnerNameValue =
+        sellerType === 'partner'
+          ? userPartnerName ||
+            user.displayName ||
+            (user.email ? user.email.split('@')[0] : 'Partner')
+          : form.partner;
+      const sellerNameValue =
+        user.displayName ||
+        (user.email ? user.email.split('@')[0] : 'Sælger');
+
       await set(newTicketRef, {
         id: newId,
         title: form.title,
@@ -108,10 +145,11 @@ export default function SellTicket() {
         dateTime: dateObj.toISOString(),
         createdAt: new Date().toISOString(),
         sellerId: user.uid,
-        sellerType: 'p2p',
-        sellerName:
-          user.displayName ||
-          (user.email ? user.email.split('@')[0] : 'Sælger'),
+        sellerType,
+        sellerName: sellerNameValue,
+        partnerId: sellerType === 'partner' ? user.uid : null,
+        partnerName: partnerNameValue || null,
+        isVerified: sellerType === 'partner',
       });
 
       Alert.alert('Opslået', 'Din billet er sat til salg.');

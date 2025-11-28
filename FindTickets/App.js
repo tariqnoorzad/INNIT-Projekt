@@ -13,6 +13,7 @@ import SearchResultsScreen from './src/features/search/screens/SearchResultsScre
 import SellTicket from './src/features/search/screens/SellTicket';
 import LoginScreen from './src/features/search/screens/loginScreen';
 import ProfileScreen from './src/features/search/screens/profileScreen';
+import PartnerAuthScreen from './src/features/search/screens/PartnerAuthScreen';
 
 
 import { auth } from './src/features/search/Firebase/database';
@@ -79,6 +80,7 @@ function AuthStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="PartnerAuth" component={PartnerAuthScreen} />
     </Stack.Navigator>
   );
 }

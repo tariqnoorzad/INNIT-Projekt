@@ -51,12 +51,17 @@ export default function TicketDetailsScreen({ route, navigation }) {
   // Live lyt på sælgers rating (kun P2P)
   const resolvedSellerId =
     ticket?.sellerId ||
+    ticket?.partnerId ||
     ticket?.ownerId ||
     ticket?.userId ||
     ticket?.uid ||
     ticket?.createdBy ||
     null;
-  const resolvedSellerType = ticket?.sellerType || 'p2p';
+  const resolvedSellerType = ticket?.sellerType
+    ? ticket.sellerType
+    : ticket?.isVerified && (ticket?.partnerId || ticket?.partner)
+      ? 'partner'
+      : 'p2p';
 
   useEffect(() => {
     if (!resolvedSellerId || resolvedSellerType === 'partner') return undefined;

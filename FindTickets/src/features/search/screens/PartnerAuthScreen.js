@@ -1,5 +1,3 @@
-// src/features/search/screens/loginScreen.js
-
 import React, { useState } from 'react';
 import {
   SafeAreaView,
@@ -9,33 +7,40 @@ import {
   Pressable,
   ActivityIndicator,
   StyleSheet,
+  Alert,
 } from 'react-native';
-
-import { auth, rtdb } from '../Firebase/database';
+import { ref, set, get } from 'firebase/database';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   updateProfile,
 } from 'firebase/auth';
-import { ref, set } from 'firebase/database';
-import { gs } from '../../../styles/globalstyle';
 
-export default function LoginScreen({ navigation }) {
-  const [mode, setMode] = useState('login'); // 'login' | 'signup'
+import { gs } from '../../../styles/globalstyle';
+import { auth, rtdb } from '../Firebase/database';
+
+const PARTNER_INVITE_CODE = 'PARTNER2025'; // Simpel kode for partner signup
+
+export default function PartnerAuthScreen({ navigation }) {
+  const [mode, setMode] = useState('login'); // login | signup
   const isLogin = mode === 'login';
 
-  const [name, setName] = useState('');      // 👈 NYT
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
+  const [inviteCode, setInviteCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async () => {
     setError('');
+    if (!email || !password || (!isLogin && (!name || !inviteCode))) {
+      setError(isLogin ? 'Udfyld email og kodeord.' : 'Udfyld navn, kode og kodeord.');
+      return;
+    }
 
-    if (!email || !password || (!isLogin && !name)) {
-      setError(isLogin ? 'Udfyld email og kodeord.' : 'Udfyld navn, email og kodeord.');
+    if (!isLogin && inviteCode.trim() !== PARTNER_INVITE_CODE) {
+      setError('Ugyldig partnerkode.');
       return;
     }
 
@@ -44,14 +49,23 @@ export default function LoginScreen({ navigation }) {
       let userCredential;
 
       if (isLogin) {
-        // 🔓 Login
         userCredential = await signInWithEmailAndPassword(
           auth,
           email.trim(),
           password
         );
+
+        // Bloker login hvis brugeren ikke er partner
+        const u = userCredential.user;
+        const profileSnap = await get(ref(rtdb, `users/${u.uid}`));
+        const profileData = profileSnap.val();
+        if (!profileData || profileData.role !== 'partner') {
+          await auth.signOut();
+          setError('Denne konto er ikke partner. Brug almindeligt login.');
+          setLoading(false);
+          return;
+        }
       } else {
-        // 🆕 Opret bruger
         userCredential = await createUserWithEmailAndPassword(
           auth,
           email.trim(),
@@ -59,25 +73,25 @@ export default function LoginScreen({ navigation }) {
         );
 
         const user = userCredential.user;
-
-        // Sæt displayName i Firebase Auth (valgfrit, men nice)
         try {
           await updateProfile(user, { displayName: name });
         } catch (e) {
           console.log('updateProfile error', e);
         }
 
-        // Gem brugerprofil i Realtime Database
         await set(ref(rtdb, `users/${user.uid}`), {
           email: user.email,
           name,
           createdAt: Date.now(),
+          role: 'partner',
+          partnerId: user.uid,
+          partnerName: name,
         });
       }
 
-      // App.js fanger login via onAuthStateChanged og viser tabs
+      navigation.goBack();
     } catch (err) {
-      console.log('Auth error', err);
+      console.log('Partner auth error', err);
       setError(mapFirebaseError(err));
     } finally {
       setLoading(false);
@@ -87,32 +101,33 @@ export default function LoginScreen({ navigation }) {
   return (
     <SafeAreaView style={gs.screen}>
       <View style={[gs.container, styles.root]}>
-        {/* Overskrift */}
+        <Pressable onPress={() => navigation.goBack()} style={{ marginBottom: 12 }}>
+          <Text style={[gs.subtitle, { color: '#6EE7B7', fontWeight: '700' }]}>
+            ← Tilbage til almindelig login
+          </Text>
+        </Pressable>
+
         <Text style={gs.h1}>
-          {isLogin ? 'Velkommen tilbage' : 'Opret bruger'}
+          {isLogin ? 'Partner login' : 'Partner signup'}
         </Text>
         <Text style={gs.subtitle}>
-          {isLogin
-            ? 'Log ind for at købe og sælge billetter.'
-            : 'Lav en konto og kom i gang.'}
+          Kun partnere med gyldig kode.
         </Text>
 
         <View style={[gs.card, gs.shadowSm, styles.card]}>
-          {/* Navn kun ved oprettelse */}
           {!isLogin && (
             <>
               <Text style={styles.label}>Navn</Text>
               <TextInput
                 value={name}
                 onChangeText={setName}
-                placeholder="Dit navn"
+                placeholder="Partner navn"
                 placeholderTextColor="#6B7280"
                 style={styles.input}
               />
             </>
           )}
 
-          {/* Email */}
           <Text style={[styles.label, !isLogin && { marginTop: 16 }]}>
             Email
           </Text>
@@ -121,12 +136,11 @@ export default function LoginScreen({ navigation }) {
             keyboardType="email-address"
             value={email}
             onChangeText={setEmail}
-            placeholder="din@email.dk"
+            placeholder="partner@email.dk"
             placeholderTextColor="#6B7280"
             style={styles.input}
           />
 
-          {/* Kodeord */}
           <Text style={[styles.label, { marginTop: 16 }]}>Kodeord</Text>
           <TextInput
             secureTextEntry
@@ -137,10 +151,22 @@ export default function LoginScreen({ navigation }) {
             style={styles.input}
           />
 
-          {/* Fejlbesked */}
+          {!isLogin && (
+            <>
+              <Text style={[styles.label, { marginTop: 16 }]}>Partnerkode</Text>
+              <TextInput
+                autoCapitalize="characters"
+                value={inviteCode}
+                onChangeText={setInviteCode}
+                placeholder="PARTNER KODE"
+                placeholderTextColor="#6B7280"
+                style={styles.input}
+              />
+            </>
+          )}
+
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
-          {/* Primær knap */}
           <Pressable
             onPress={handleSubmit}
             disabled={loading}
@@ -154,17 +180,16 @@ export default function LoginScreen({ navigation }) {
               <ActivityIndicator color="#0E0F13" />
             ) : (
               <Text style={gs.buttonTextDark}>
-                {isLogin ? 'Log ind' : 'Opret konto'}
+                {isLogin ? 'Log ind' : 'Opret partner'}
               </Text>
             )}
           </Pressable>
 
-          {/* Skift mellem login / signup */}
           <View style={styles.switchRow}>
             <Text style={gs.muted}>
               {isLogin
-                ? 'Har du ikke en konto? '
-                : 'Har du allerede en konto? '}
+                ? 'Ingen partnerkonto endnu? '
+                : 'Har du allerede en partnerkonto? '}
             </Text>
             <Pressable
               onPress={() => {
@@ -173,15 +198,8 @@ export default function LoginScreen({ navigation }) {
               }}
             >
               <Text style={styles.switchLink}>
-                {isLogin ? 'Opret dig' : 'Log ind'}
+                {isLogin ? 'Opret partner' : 'Log ind'}
               </Text>
-            </Pressable>
-          </View>
-
-          <View style={[styles.switchRow, { marginTop: 10 }]}>
-            <Text style={gs.muted}>Er du partner? </Text>
-            <Pressable onPress={() => navigation.navigate('PartnerAuth')}>
-              <Text style={styles.switchLink}>Partner login</Text>
             </Pressable>
           </View>
         </View>

@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, Image, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { gs } from '../../../styles/globalstyle';
 
-export default function PartnerDetail({ route }) {
+export default function PartnerDetail({ route, navigation }) {
   const partner = route.params?.partner;
   if (!partner) return null;
 
@@ -43,7 +43,13 @@ export default function PartnerDetail({ route }) {
           {/* BYTTET: Fuld-bredde = SE BILLETTER */}
           <TouchableOpacity
             style={[gs.buttonPrimary]}
-            onPress={() => alert('Her kunne vi vise billetter for partneren')}
+            onPress={() =>
+              navigation.navigate('PartnerTickets', {
+                partnerId: partner.partnerId || partner.id,
+                partnerName: partner.name,
+                partner,
+              })
+            }
           >
             <Text style={gs.buttonTextDark}>Se billetter</Text>
           </TouchableOpacity>
